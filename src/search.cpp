@@ -1179,7 +1179,12 @@ moves_loop:  // When in check, search starts here
             else if (cutNode)
                 extension = -2;
         }
-
+        if (!extension && capture && depth >= 5 && prevSq != SQ_NONE && move.to_sq() == prevSq)
+        {
+                PieceType capturedPt = type_of(pos.piece_on(move.to_sq()));
+                if (capturedPt >= KNIGHT && pos.non_pawn_material(us) >= 3 * PieceValue[KNIGHT])
+                    extension = 1;
+            }
         // Step 16. Make the move
         do_move(pos, move, st, givesCheck, ss);
 
