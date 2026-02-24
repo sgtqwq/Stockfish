@@ -850,7 +850,8 @@ Value Search::Worker::search(
             }
         }
     }
-
+	  
+	int improvement = 0;
     if (ss->inCheck)
         goto moves_loop;
 
@@ -888,7 +889,7 @@ Value Search::Worker::search(
     }
 
     // Step 9. Null move search with verification search
-    int improvement = (ss - 2)->staticEval != VALUE_NONE
+    improvement = (ss - 2)->staticEval != VALUE_NONE
                         ? int(ss->staticEval) - int((ss - 2)->staticEval)
                         : 0;
 
