@@ -893,7 +893,7 @@ namespace Stockfish {
 			? int(ss->staticEval) - int((ss - 2)->staticEval)
 			: 0;
 			
-			if (cutNode && ss->staticEval >= beta - 17 * depth + 359 - std::min(0, improvement / 8) && !excludedMove
+			if (cutNode && ss->staticEval >= beta - 17 * depth + 359 - std::max(0, improvement / 8) && !excludedMove
 				&& pos.non_pawn_material(us) && ss->ply >= nmpMinPly && !is_loss(beta))
 			{
 				assert((ss - 1)->currentMove != Move::null());
