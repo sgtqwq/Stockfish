@@ -777,7 +777,7 @@ Value Search::Worker::search(
     Key   posKey;
     Move  move, excludedMove, bestMove;
     Depth extension, newDepth;
-    Value bestValue, value, eval, maxValue, probCutBeta;
+    Value bestValue, value, eval, maxValue, probCutBeta ,improvement;
     bool  givesCheck, improving, priorCapture, opponentWorsening;
     bool  capture, ttCapture;
     int   priorReduction;
@@ -880,14 +880,17 @@ Value Search::Worker::search(
                        unadjustedStaticEval, tt.generation());
     }
 
-    // Set up the improving flag, which is true if current static evaluation is
+    // Set up the improvement variable and the improving flag, which is true if current static evaluation is
     // bigger than the previous static evaluation at our turn (if we were in
     // check at our previous move we go back until we weren't in check) and is
     // false otherwise. The improving flag is used in various pruning heuristics.
     // Similarly, opponentWorsening is true if our static evaluation is better
     // for us than at the last ply.
-    improving         = ss->staticEval > (ss - 2)->staticEval;
-    opponentWorsening = ss->staticEval > -(ss - 1)->staticEval;
+	  improvement       = !ss->inCheck && is_valid((ss - 2)->staticEval)
+	  ? ss->staticEval - (ss - 2)->staticEval
+	  : VALUE_ZERO;
+	  improving         = improvement > 0;
+	  opponentWorsening = ss->staticEval > -(ss - 1)->staticEval;
 
     // Hindsight adjustment of reductions based on static evaluation difference
     if (priorReduction >= 3 && !opponentWorsening)
@@ -1203,8 +1206,8 @@ moves_loop:  // When in check, search starts here
         if (!rootNode && pos.non_pawn_material(us) && !is_loss(bestValue))
         {
             // Skip quiet moves if movecount exceeds our threshold
-            if (moveCount >= (3 + depth * depth) / (2 - improving))
-                mp.skip_quiet_moves();
+			if (moveCount >= 128 * (3 + depth * depth) / (216 - std::clamp(improvement * 2, -40, 104)))
+				mp.skip_quiet_moves();
 
             // Reduced depth of the next LMR search
             int lmrDepth = newDepth - r / 1024;
